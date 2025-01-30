@@ -10,7 +10,7 @@ import numpy as np
 class Board():
     # Representation of an Othello board and game state
     def __init__(self,
-                 display_chars = {-1:'\u25CF', 0: ' ', 1: '\u25CB'},
+                 display_chars = {-1:'\u25CB', 0: ' ', 1: '\u25CF'},
                  highlight_chars = {-1:'\u25C6', 0: '\u25C8', 1: '\u25C7'}):
         self.size = 8 # board size
         # setup position: -1 = black, +1 = white
@@ -81,6 +81,15 @@ class Board():
         else: # white wins
             return w + e
         
+    def eval(self):
+        # returns a heuristic evaluation of the board, e.g. (weighted sum of):
+        #   difference in number of pieces for black and white
+        #   difference in number of valid moves for black and white
+        #   difference in number of corners for black and white
+        #   difference in number of pieces in the center for black and white
+        #   difference in number of pieces on the edges for black and white
+        pass
+
     def copy(self):
         # returns a deep copy of the board
         # (brute force implementation)

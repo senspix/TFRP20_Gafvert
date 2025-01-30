@@ -41,10 +41,16 @@ class TestOthello(unittest.TestCase):
         b.move((3,2))
         self.assertEqual(b.board[3][2], -1)
         self.assertEqual(b.board[3][3], -1)
-        self.assertEqual(b.board[3][4], -1)
-        self.assertEqual(b.board[4][3], -1)
-        self.assertEqual(b.board[4][4], 1)
-        self.assertEqual(b.turn, 1)
+        b.move((3,1))
+        self.assertEqual(b.board[3][1], -1)
+        self.assertEqual(b.board[3][2], -1)
+        self.assertEqual(b.board[3][3], -1)
+        
+
+    def test_valid_moves(self):
+        b = Board()
+        self.assertEqual(b.valid_moves(), [(2, 4), (3, 5), (4, 2), (5, 3)])
+      
 
 
 
