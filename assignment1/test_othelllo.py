@@ -10,7 +10,7 @@ class TestOthello(unittest.TestCase):
         self.assertEqual(b.board[3][4], -1)
         self.assertEqual(b.board[4][3], -1)
         self.assertEqual(b.board[4][4], 1)
-        self.assertEqual(b.turn, -1)
+        self.assertEqual(b.player, -1)
 
 
     def test_repr(self):

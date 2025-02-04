@@ -24,7 +24,9 @@ class Board(sm.Node):
         # self.board[0][-1] = -1
         # self.board[-1][0] = -1
         # self.board[-1][-1] = 1
-        self.turn = -1 # black starts
+        self.player = -1 # black starts
+        self.transcript = []
+        self.turn = 0
         # print characters for display
         #self.display_chars = {-1:'b', 0: ' ', 1: 'w'}
         # self.display_chars = {-1:'\u26AB', 0: ' ', 1: '\u26AA'} # medium circles too wide
@@ -98,12 +100,12 @@ class Board(sm.Node):
         # Get valid moves for current player
         moves = self.valid_moves()
         # Store current turn
-        current_turn = self.turn
+        current_turn = self.player
         # Try opponent's moves if current player has no moves
         if not moves:
-            self.turn = -self.turn
+            self.player = -self.player
             moves = self.valid_moves()
-            self.turn = current_turn
+            self.player = current_turn
             if not moves:  # Neither player has valid moves
                 return True
 
@@ -158,7 +160,7 @@ class Board(sm.Node):
         if not (0 <= i+di < self.size and 0 <= j+dj < self.size):
             return False
         # move must be in direction of opponent
-        if self.board[i+di][j+dj] != -self.turn:
+        if self.board[i+di][j+dj] != -self.player:
             return False
         # check if there is a sequence of opponent pieces followed by a piece of the current player
         i += 2*di
@@ -166,7 +168,7 @@ class Board(sm.Node):
         while 0 <= i < self.size and 0 <= j < self.size:
             if self.board[i][j] == 0:
                 return False
-            if self.board[i][j] == self.turn:
+            if self.board[i][j] == self.player:
                 return True
             i += di
             j += dj
@@ -184,8 +186,8 @@ class Board(sm.Node):
         (di,dj) = direction
         i += di
         j += dj
-        while self.board[i][j] == -self.turn:
-            self.board[i][j] = self.turn
+        while self.board[i][j] == -self.player:
+            self.board[i][j] = self.player
             i += di
             j += dj
 
@@ -208,16 +210,17 @@ class Board(sm.Node):
         if move == None:
             if check and len(self.valid_moves()) > 0:
                 return False
-            self.turn = -self.turn
-            return True
+        else:
+            if check and not self.valid_move(move):
+                return False
+            (i,j) = move
+            self.board[i][j] = self.player
+            self.flip(move)
 
-        if check and not self.valid_move(move):
-            return False
-        (i,j) = move
         self.move = move
-        self.board[i][j] = self.turn
-        self.flip(move)
-        self.turn = -self.turn
+        self.turn += 1
+        self.transcript.append((self.turn, self.player, self.move))
+        self.player = -self.player
         return True
 
     def movestr(self, move):
@@ -227,7 +230,7 @@ class Board(sm.Node):
         return self.make_move(str2move(move))
     
     def make_pass(self):
-        self.turn = -self.turn
+        self.player = -self.player
 
     
 def move2str(move):
@@ -259,10 +262,10 @@ if __name__ == '__main__':
         i += 1
         m = b.find_best_move(depth)
         if m == None:
-            print(i,b.display_chars[b.turn],'pass')
+            print(i,b.display_chars[b.player],'pass')
             b.make_move(None)
         else:    
-            print(i,b.display_chars[b.turn],move2str(m.move))
+            print(i,b.display_chars[b.player],move2str(m.move))
             b.make_move(m.move)
     print(b)
 
