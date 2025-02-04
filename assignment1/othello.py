@@ -2,12 +2,13 @@ import pdb
 import logging
 import copy # deep copy
 import numpy as np
+import search_minimax as sm
 
 
 # https://canvas.education.lu.se/courses/33984/assignments/225768
 
 
-class Board():
+class Board(sm.Node):
     # Representation of an Othello board and game state
     def __init__(self,
                  display_chars = {-1:'\u25CB', 0: ' ', 1: '\u25CF'},
@@ -33,10 +34,6 @@ class Board():
         self.display_chars = display_chars
 
     def __repr__(self):
-#        return '  '+' '.join([chr(ord('a')+i) for i in range(self.size)])+'\n'+'\n'.join([str(i+1)+' '+ ' '.join([self.display_chars[x] for x in row]) for (i,row) in enumerate(self.board)])
-        # return '  ' + ' '.join([chr(ord('a')+i) for i in range(self.size)]) + '\n' + \
-        #     '\n'.join([str(i+1) + ' ' + ' '.join([self.display_chars[x] for x in row]) + ' ' + str(i+1) for (i,row) in enumerate(self.board)]) + \
-        #     '\n  ' + ' '.join([chr(ord('a')+i) for i in range(self.size)]) + '\n'
         return self.str()
     
     def print(self, highlight = []):
@@ -81,14 +78,51 @@ class Board():
         else: # white wins
             return w + e
         
-    def eval(self):
+    def evaluate(self):
         # returns a heuristic evaluation of the board, e.g. (weighted sum of):
-        #   difference in number of pieces for black and white
-        #   difference in number of valid moves for black and white
+        #   coin parity: difference in number of pieces for black and white
+        #   mobility: difference in number of valid moves for black and white
         #   difference in number of corners for black and white
         #   difference in number of pieces in the center for black and white
         #   difference in number of pieces on the edges for black and white
-        pass
+        #   number of legal move
+    
+        return 0
+
+    def is_terminal(self):
+        # returns True if the game is over, False otherwise
+        # the game is over if at least one of the following conditions holds true:
+        #   no player has a valid move
+        #   the board is full
+        #   the board has pieces of only one color
+        # Get valid moves for current player
+        moves = self.valid_moves()
+        # Store current turn
+        current_turn = self.turn
+        # Try opponent's moves if current player has no moves
+        if not moves:
+            self.turn = -self.turn
+            moves = self.valid_moves()
+            self.turn = current_turn
+            if not moves:  # Neither player has valid moves
+                return True
+
+        # Count pieces
+        b, w, e = self.count()
+        # Board is full or only one color remains
+        if e == 0 or b == 0 or w == 0:
+            return True
+
+        return False
+    
+    def get_children(self):
+        # returns a list of all possible children of the current node
+        # children are all possible moves for the current player
+        for move in self.valid_moves():
+            child = self.copy()
+            child.make_move(move)
+            yield child
+    
 
     def copy(self):
         # returns a deep copy of the board
@@ -166,13 +200,21 @@ class Board():
                 if self.valid_move_dir((i,j), (di,dj)):
                     self.flip_dir((i,j), (di,dj))
 
-    def move(self, move, check = True):
+    def make_move(self, move, check = True):
         # updates the board with the move (if valid)
         # returns True if move is valid, False otherwise
         # move is a tuple (i,j) with i=row, j=column
+        # move == None means pass
+        if move == None:
+            if check and len(self.valid_moves()) > 0:
+                return False
+            self.turn = -self.turn
+            return True
+
         if check and not self.valid_move(move):
             return False
         (i,j) = move
+        self.move = move
         self.board[i][j] = self.turn
         self.flip(move)
         self.turn = -self.turn
@@ -182,7 +224,11 @@ class Board():
         # updates the board with the move (if valid)
         # returns True if move is valid, False otherwise
         # move is a string with the move in algebraic notation 'Xn' where X is a letter 'a..h' and n a number 1..8
-        return self.move(str2move(move))
+        return self.make_move(str2move(move))
+    
+    def make_pass(self):
+        self.turn = -self.turn
+
     
 def move2str(move):
     # converts a of move (i,j) to algebraic notation
@@ -205,6 +251,19 @@ def str2move(move):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     b = Board()
+    print(b)
+    print('playing a game')
+    depth = 3
+    i = 0
+    while not b.is_terminal() and i < 100:
+        i += 1
+        m = b.find_best_move(depth)
+        if m == None:
+            print(i,b.display_chars[b.turn],'pass')
+            b.make_move(None)
+        else:    
+            print(i,b.display_chars[b.turn],move2str(m.move))
+            b.make_move(m.move)
     print(b)
 
 

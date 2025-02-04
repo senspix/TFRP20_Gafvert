@@ -36,15 +36,12 @@ class TestOthello(unittest.TestCase):
         self.assertEqual(b.score(), 0)
         # add test for non-zero score when move() implemented
 
-    def test_move(self):
+    def test_make_move(self):
         b = Board()
-        b.move((3,2))
+        b.make_move((3,2))
         self.assertEqual(b.board[3][2], -1)
         self.assertEqual(b.board[3][3], -1)
-        b.move((3,1))
-        self.assertEqual(b.board[3][1], -1)
-        self.assertEqual(b.board[3][2], -1)
-        self.assertEqual(b.board[3][3], -1)
+        self.assertEqual(b.make_move((3,1)), False)
 
 
     def test_valid_moves(self):
