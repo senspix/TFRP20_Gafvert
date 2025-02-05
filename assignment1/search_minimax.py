@@ -1,5 +1,5 @@
 # Implementation of the minimax algorithm with alpha-beta pruning.
-
+import time
 
 class Node:
     def __init__(self):
@@ -43,8 +43,9 @@ class Node:
         Returns:
             best_score: The best possible score from the current position
         """
-        # Base case: if we reach maximum depth or game is over
-        if depth == 0 or self.is_terminal():
+        # Base case: if we reach maximum depth or game is over or time expired
+
+        if depth == 0 or self.is_terminal() or time.time() - self.time_start > self.time_limit:
             return self.evaluate()
 
         if maximizing_player:
@@ -55,7 +56,7 @@ class Node:
                 alpha = max(alpha, best_score)
                 if best_score >= beta:
                     break  # Beta cut-off
-            return best_score
+            return best_score # issue: if not terminal but no children (pass) then returns inf... should return eval?
         
         else: # minimizing player
             best_score = float('inf')
@@ -66,19 +67,24 @@ class Node:
                 if best_score <= alpha:
                     break  # Alpha cut-off
             return best_score
+        
+
 
     # example usage
-    def find_best_move(self, depth, maximizing_player=True):
-        best_score = float('-inf')
+    def find_best_move(self, depth, maximizing_player=True, time_limit = float('inf')):
+        best_score = float('-inf') if maximizing_player else float('inf') 
         best_move = None
         alpha = float('-inf')
         beta = float('inf')
+        self.time_limit = time_limit
+        self.time_start = time.time()
         
         for move in self.get_children():
             score = move.minimax(depth - 1, alpha, beta, not maximizing_player)
-            if score >= best_score: # strict inequality may wrongly return best_move = None.... 
+            if (maximizing_player and (score > best_score)) or (not maximizing_player and (score < best_score)): 
                 best_score = score
                 best_move = move
-        
+
+        # print(f'best score: {best_score} ({maximizing_player =})')
         return best_move
     

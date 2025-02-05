@@ -6,10 +6,10 @@ import pdb;
 class TestOthello(unittest.TestCase):
     def test_init(self):
         b = Board()
-        self.assertEqual(b.board[3][3], 1)
-        self.assertEqual(b.board[3][4], -1)
-        self.assertEqual(b.board[4][3], -1)
-        self.assertEqual(b.board[4][4], 1)
+        self.assertEqual(b.board[3,3], 1)
+        self.assertEqual(b.board[3,4], -1)
+        self.assertEqual(b.board[4,3], -1)
+        self.assertEqual(b.board[4,4], 1)
         self.assertEqual(b.player, -1)
 
 
@@ -21,11 +21,13 @@ class TestOthello(unittest.TestCase):
         b = Board()
         b0  = b
         b1 = b.copy()
-        self.assertEqual(b.board, b0.board)
-        self.assertEqual(b.board, b1.board)
-        b.board[0][0] = 1
-        self.assertEqual(b.board, b0.board)
-        self.assertNotEqual(b.board, b1.board)
+        np.testing.assert_array_equal(b.board, b0.board)
+        np.testing.assert_array_equal(b.board, b1.board)
+        b.board[0,0] = 1
+        np.testing.assert_array_equal(b.board, b0.board)
+        np.testing.assert_raises(AssertionError,np.testing.assert_array_equal,b.board, b1.board)
+        self.assertEqual(b.board.tolist(), b0.board.tolist())
+        self.assertNotEqual(b.board.tolist(), b1.board.tolist())
 
     def test_count(self):
         b = Board()
@@ -39,8 +41,8 @@ class TestOthello(unittest.TestCase):
     def test_make_move(self):
         b = Board()
         b.make_move((3,2))
-        self.assertEqual(b.board[3][2], -1)
-        self.assertEqual(b.board[3][3], -1)
+        self.assertEqual(b.board[3,2], -1)
+        self.assertEqual(b.board[3,3], -1)
         self.assertEqual(b.make_move((3,1)), False)
 
 
