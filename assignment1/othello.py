@@ -19,7 +19,8 @@ PASS = None
 class Board(sm.Node):
     # Representation of an Othello board and game state inheriting and implementing Node class from search_minimax module
     # Implements Othello standard rules from https://en.wikipedia.org/wiki/Reversi
-    # Implements game state evaluation function for minimax search 
+    # Implements game state evaluation function for minimax search
+     
     def __init__(self,
                  display_chars = {-1:'\u25CB', 0: ' ', 1: '\u25CF'},
                  highlight_chars = {-1:'\u25C6', 0: '\u25C8', 1: '\u25C7'},
@@ -95,32 +96,26 @@ class Board(sm.Node):
                     e += 1
         return (b,w,e) # black, white, empty
 
-    # def score(self):
-    #     # returns final score of the game (negative for black, winner gets points for empty squares)
-    #     (b, w, e) = self.count() 
-    #     if b ==  w: # draw
-    #         return 0
-    #     elif b > w: # black wins
-    #         return -b - e
-    #     else: # white wins
-    #         return w + e
         
     def evaluate(self):
         # For a terminal state, returns final score of the game from (from Black player perspective):
         #   (winner gets points for empty squares)
-        # returns a heuristic evaluation of the board for the current stet, e.g. (weighted sum of):
+        # returns a heuristic evaluation of the board for the current state, e.g. (weighted sum of):
         #   coin parity: difference in number of pieces for black and white
         #   mobility: difference in number of valid moves for black and white
         #   difference in number of corners for black and white
         #   difference in number of pieces in the center for black and white
         #   difference in number of pieces on the edges for black and white
-        #   number of legal move
 
         static_b = np.sum((self.board == BLACK) * self.weight_matrix)
         static_w = np.sum((self.board == WHITE) * self.weight_matrix)
         (b,w,e) = self.count()
         mobility = -len(self.valid_moves())*self.player
-        return (b + e if b > w else (-w - e if w > b else 0)) if self.is_terminal() else static_b - static_w
+        utility = b + e if b > w else (-w - e if w > b else 0)
+        parity = b - w
+        return utility if self.is_terminal() else static_b - static_w + mobility
+
+       
 
     def is_terminal(self):
         # returns True if the game is over, False otherwise
@@ -273,7 +268,7 @@ class Board(sm.Node):
         return self.make_move(str2move(move))
     
     def make_pass(self):
-        self.make_move(None)
+        self.make_move(PASS)
 
     def find_random_move(self):
         valid_moves = self.valid_moves()
@@ -323,10 +318,10 @@ def play_othello():
     black_user_player = inp == 'b'
     white_user_player = inp == 'w'
     print(f'playing a game (black = {"user" if black_user_player else "computer"}, white = {"user" if white_user_player else "computer"})')
-    board = Board()
+    board = Board(randomize_valid_moves=False)
     print(board)
     depth = 3 # computer search depth
-    time_limit = 10. # computer per move time limit in seconds
+    time_limit = float('inf') # computer per move time limit in seconds
     while not board.is_terminal() and board.turn < 100:
         score = None
         if board.player == BLACK: # black
@@ -334,14 +329,14 @@ def play_othello():
                 move = board.input_user_move()
             else:
                 # m = b.find_random_move()
-                (child,score) = board.find_best_child(depth,True,timer_limit = time_limit)
+                (child,score) = board.find_best_child(depth+1,True,timer_limit = time_limit)
                 move = PASS if child == None else child.move
         else: # white
             if white_user_player:
                 move = board.input_user_move()
             else:
                 # m = b.find_random_move()
-                (child,score) = board.find_best_child(depth+1,False,timer_limit=time_limit)
+                (child,score) = board.find_best_child(depth,False,timer_limit=time_limit)
                 move = PASS if child == None else child.move
         board.make_move(move)
         print(f'Turn {board.turn}: {board.display_chars[-board.player]} plays {move2str(move)} (value {board.evaluate()}, score {score})')

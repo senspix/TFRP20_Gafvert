@@ -60,6 +60,7 @@ class Node:
                 best_score = max(score, best_score)
                 alpha = max(alpha, best_score)
                 if best_score >= beta:
+                    print("beta cut-off")
                     break  # Beta cut-off
             return best_score 
         
@@ -70,6 +71,7 @@ class Node:
                 best_score = min(score, best_score)
                 beta = min(beta, best_score)
                 if best_score <= alpha:
+                    print("alpha cut-off")
                     break  # Alpha cut-off
             return best_score
         
@@ -95,16 +97,16 @@ class Node:
         if depth <= 0:
             raise ValueError("depth must be > 0")
         best_score = float('-inf') if maximizing_player else float('inf') 
-        best_move = None
+        best_child = None
         alpha = float('-inf')
         beta = float('inf')
         timer_start = time.time()
         
-        for move in self.get_children():
-            score = move.minimax(depth - 1, alpha, beta, not maximizing_player, timer_start, timer_limit)
+        for child in self.get_children():
+            score = child.minimax(depth - 1, alpha, beta, not maximizing_player, timer_start, timer_limit)
             if (maximizing_player and (score > best_score)) or (not maximizing_player and (score < best_score)): 
                 best_score = score
-                best_move = move
+                best_child = child
 
-        return best_move, best_score
+        return best_child, best_score
     
