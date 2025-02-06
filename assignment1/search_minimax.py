@@ -2,6 +2,11 @@
 import time
 
 class Node:
+    """
+    Abstract base class for game tree for minimax search.
+    Implementation of minimax seach with alpha-beta pruning is provided
+    """
+
     def __init__(self):
         pass
 
@@ -29,39 +34,39 @@ class Node:
         """
         raise NotImplementedError
     
-    def minimax(self, depth, alpha, beta, maximizing_player):
+    def minimax(self, depth, alpha, beta, maximizing_player, timer_start = 0, timer_limit = float('inf')):
         """
-        Minimax algorithm with alpha-beta pruning.
+        Minimax algorithm with alpha-beta pruning and optional timer interruption.
         
         Args:
-            node: Current game state
             depth: Maximum depth to search
             alpha: Alpha value for pruning
             beta: Beta value for pruning
             maximizing_player: Boolean indicating if current player is maximizing
+            timer_start, timer_limit: search interrupted when current time exceeds timer_start + timer_limit
         
         Returns:
             best_score: The best possible score from the current position
         """
         # Base case: if we reach maximum depth or game is over or time expired
 
-        if depth == 0 or self.is_terminal() or time.time() - self.time_start > self.time_limit:
+        if depth == 0 or self.is_terminal() or time.time() - timer_start > timer_limit:
             return self.evaluate()
 
         if maximizing_player:
             best_score = float('-inf')
             for child in self.get_children():
-                score = child.minimax(depth - 1, alpha, beta, False)
+                score = child.minimax(depth - 1, alpha, beta, False, timer_start, timer_limit)
                 best_score = max(score, best_score)
                 alpha = max(alpha, best_score)
                 if best_score >= beta:
                     break  # Beta cut-off
-            return best_score # issue: if not terminal but no children (pass) then returns inf... should return eval?
+            return best_score 
         
         else: # minimizing player
             best_score = float('inf')
             for child in self.get_children():
-                score = child.minimax(depth - 1, alpha, beta, True)
+                score = child.minimax(depth - 1, alpha, beta, True, timer_start, timer_limit)
                 best_score = min(score, best_score)
                 beta = min(beta, best_score)
                 if best_score <= alpha:
@@ -69,22 +74,37 @@ class Node:
             return best_score
         
 
-
-    # example usage
-    def find_best_move(self, depth, maximizing_player=True, time_limit = float('inf')):
+    def find_best_child(self, depth, maximizing_player=True, timer_limit = float('inf')):
+        """
+        Convenience method to initiate search from current game state using
+        Minimax algorithm with alpha-beta pruning and optional timer interruption.
+        
+        Args:
+            depth: Maximum depth to search (must be > 0)
+            alpha: Alpha value for pruning
+            beta: Beta value for pruning
+            maximizing_player: Boolean indicating if current player is maximizing
+            timer_limit: search interrupted when time lapsed from calling this method exceeds timer_limit
+        
+        Returns:
+            best_child: The best possible child found from the current node
+                None if no children exists from current game state 
+            best_score: The best possible score found from the current node
+                -inf for maximizing player or +inf for minimizing player if no children exists from current game state  
+        """
+        if depth <= 0:
+            raise ValueError("depth must be > 0")
         best_score = float('-inf') if maximizing_player else float('inf') 
         best_move = None
         alpha = float('-inf')
         beta = float('inf')
-        self.time_limit = time_limit
-        self.time_start = time.time()
+        timer_start = time.time()
         
         for move in self.get_children():
-            score = move.minimax(depth - 1, alpha, beta, not maximizing_player)
+            score = move.minimax(depth - 1, alpha, beta, not maximizing_player, timer_start, timer_limit)
             if (maximizing_player and (score > best_score)) or (not maximizing_player and (score < best_score)): 
                 best_score = score
                 best_move = move
 
-        # print(f'best score: {best_score} ({maximizing_player =})')
-        return best_move
+        return best_move, best_score
     

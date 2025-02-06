@@ -1,3 +1,7 @@
+# Code for Assignment 1 in TFRF20: Introduction to Artficial Intelligence by Computer Science Department at Lund University VT2025
+# https://canvas.education.lu.se/courses/33984/assignments/225768
+# Author: Magnus Gäfvert
+
 import pdb
 import logging
 import copy # deep copy
@@ -6,28 +10,33 @@ import search_minimax as sm
 import random
 
 
-# https://canvas.education.lu.se/courses/33984/assignments/225768
-
+# constants 
+BLACK = -1
+WHITE = 1
+EMPTY = 0
+PASS = None
 
 class Board(sm.Node):
-    # Representation of an Othello board and game state
+    # Representation of an Othello board and game state inheriting and implementing Node class from search_minimax module
+    # Implements Othello standard rules from https://en.wikipedia.org/wiki/Reversi
+    # Implements game state evaluation function for minimax search 
     def __init__(self,
                  display_chars = {-1:'\u25CB', 0: ' ', 1: '\u25CF'},
                  highlight_chars = {-1:'\u25C6', 0: '\u25C8', 1: '\u25C7'},
                  randomize_valid_moves = True):
-        self.size = 8 # board size
-        # setup position: -1 = black, +1 = white
-        # self.board = [[0 for _ in range(self.size)] for _ in range(self.size)] # consider using numpy array but no clear advantage for now
-        self.board = np.zeros((self.size,self.size))
-        self.board[3,3] = 1
-        self.board[3,4] = -1
-        self.board[4,3] = -1
-        self.board[4,4] = 1
+        self.size = 8 # board size (current implementation does not support other board sizes than 8x8)
 
-        self.player = -1 # black starts
+        # setup position:
+        self.board = np.zeros((self.size,self.size))
+        self.board[3,3] = WHITE
+        self.board[3,4] = BLACK
+        self.board[4,3] = BLACK
+        self.board[4,4] = WHITE
+
+        self.player = BLACK # player to make next turn
         self.transcript = []
-        self.turn = 1
-        self.last_move = None
+        self.turn = 0 # completed turns 
+        self.move = None # move of last completed turn
 
         # print characters for display
         #self.display_chars = {-1:'b', 0: ' ', 1: 'w'}
@@ -39,8 +48,8 @@ class Board(sm.Node):
 
         self.randomize_valid_moves = randomize_valid_moves
 
-        # build static weight matrix
-        # https://courses.cs.washington.edu/courses/cse573/04au/Project/mini1/RUSSIA/miniproject1_vaishu_muthu/Paper/Final_Paper.pdf
+        # build static weight matrix used in evaluation function
+        # source: https://courses.cs.washington.edu/courses/cse573/04au/Project/mini1/RUSSIA/miniproject1_vaishu_muthu/Paper/Final_Paper.pdf
         w = np.matrix([4,-3,2,2,-4,-1,-1,1,0,1])
         tri = np.zeros((4,4))
         tri[np.triu_indices(4,0)] = w
@@ -78,36 +87,40 @@ class Board(sm.Node):
         b = w = e = 0
         for i in range(self.size):
             for j in range(self.size):
-                if self.board[i,j] == -1:
+                if self.board[i,j] == BLACK:
                     b += 1
-                elif self.board[i,j] == 1:
+                elif self.board[i,j] == WHITE:
                     w += 1
                 else:
                     e += 1
         return (b,w,e) # black, white, empty
 
-    def score(self):
-        # returns final score of the game (negative for black, winner gets points for empty squares)
-        (b, w, e) = self.count() 
-        if b ==  w: # draw
-            return 0
-        elif b > w: # black wins
-            return -b - e
-        else: # white wins
-            return w + e
+    # def score(self):
+    #     # returns final score of the game (negative for black, winner gets points for empty squares)
+    #     (b, w, e) = self.count() 
+    #     if b ==  w: # draw
+    #         return 0
+    #     elif b > w: # black wins
+    #         return -b - e
+    #     else: # white wins
+    #         return w + e
         
     def evaluate(self):
-        # returns a heuristic evaluation of the board, e.g. (weighted sum of):
+        # For a terminal state, returns final score of the game from (from Black player perspective):
+        #   (winner gets points for empty squares)
+        # returns a heuristic evaluation of the board for the current stet, e.g. (weighted sum of):
         #   coin parity: difference in number of pieces for black and white
         #   mobility: difference in number of valid moves for black and white
         #   difference in number of corners for black and white
         #   difference in number of pieces in the center for black and white
         #   difference in number of pieces on the edges for black and white
         #   number of legal move
-        static_b = np.sum((self.board == -1) * self.weight_matrix)
-        static_w = np.sum((self.board == 1) * self.weight_matrix)
+
+        static_b = np.sum((self.board == BLACK) * self.weight_matrix)
+        static_w = np.sum((self.board == WHITE) * self.weight_matrix)
         (b,w,e) = self.count()
-        return b - w if self.is_terminal() else static_b - static_w
+        mobility = -len(self.valid_moves())*self.player
+        return (b + e if b > w else (-w - e if w > b else 0)) if self.is_terminal() else static_b - static_w
 
     def is_terminal(self):
         # returns True if the game is over, False otherwise
@@ -146,7 +159,7 @@ class Board(sm.Node):
                 child = self.copy()
                 child.make_move(move)
                 yield child
-        else: # pass
+        else: # pass and return current state as single child
             child = self.copy()
             child.make_move(None) 
             yield child
@@ -162,7 +175,7 @@ class Board(sm.Node):
         # move is a tuple (i,j) with i=row, j=column
         # check if square is empty
         (i,j) = move
-        if self.board[i][j] != 0:
+        if self.board[i][j] != EMPTY:
             return False
         # check if move is valid in any direction
         for di in [-1,0,1]:
@@ -191,7 +204,7 @@ class Board(sm.Node):
         i += 2*di
         j += 2*dj
         while 0 <= i < self.size and 0 <= j < self.size:
-            if self.board[i,j] == 0:
+            if self.board[i,j] == EMPTY:
                 return False
             if self.board[i,j] == self.player:
                 return True
@@ -201,6 +214,8 @@ class Board(sm.Node):
 
     def valid_moves(self):
         # returns a list of valid moves for the current player
+        # shuffle list if randomize property True
+        # (consider adding priority sorted option) 
         valid_moves = [(i,j) for i in range(self.size) for j in range(self.size) if self.valid_move((i,j))]
         if self.randomize_valid_moves:
             random.shuffle(valid_moves)
@@ -246,7 +261,7 @@ class Board(sm.Node):
             self.flip(move)
 
         self.transcript.append((self.turn, self.player, move))
-        self.last_move = move
+        self.move = move
         self.turn += 1
         self.player = -self.player
         return True
@@ -271,13 +286,13 @@ class Board(sm.Node):
         valid_moves = move2str(self.valid_moves())
         if len(valid_moves) > 0:
             while True:
-                inp = input(f'Enter {"black" if b.player == -1 else "white"} move for turn {self.turn} {valid_moves}: ')
+                inp = input(f'Enter {"black" if board.player == BLACK else "white"} move for turn {self.turn} {valid_moves}: ')
                 if inp in valid_moves:
                     break
             return str2move(inp)
         else:
-            print(f'{"Black" if b.player == -1 else "White"} pass in turn {self.turn}')
-            return None
+            print(f'{"Black" if board.player == BLACK else "White"} pass in turn {self.turn}')
+            return PASS
 
     
 def move2str(move):
@@ -300,11 +315,7 @@ def str2move(move):
     elif isinstance(move,list):
         return list(map(str2move, move))
     
-
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+def play_othello():
     while True: 
         inp = input("Do you want to play black ('b') or white ('w') or none ('n')? ")
         if inp in ['b','w','n']:
@@ -312,39 +323,39 @@ if __name__ == '__main__':
     black_user_player = inp == 'b'
     white_user_player = inp == 'w'
     print(f'playing a game (black = {"user" if black_user_player else "computer"}, white = {"user" if white_user_player else "computer"})')
-    b = Board()
-    print(b)
-    depth = 3
-    time_limit = 1. # computer per move time limit in seconds
-    while not b.is_terminal() and b.turn < 100:
-        if b.player == -1: # black
+    board = Board()
+    print(board)
+    depth = 3 # computer search depth
+    time_limit = 10. # computer per move time limit in seconds
+    while not board.is_terminal() and board.turn < 100:
+        score = None
+        if board.player == BLACK: # black
             if black_user_player:
-                m = b.input_user_move()
+                move = board.input_user_move()
             else:
                 # m = b.find_random_move()
-                c = b.find_best_move(depth,True,time_limit = time_limit)
-                m = None if c == None else c.last_move
+                (child,score) = board.find_best_child(depth,True,timer_limit = time_limit)
+                move = PASS if child == None else child.move
         else: # white
             if white_user_player:
-                m = b.input_user_move()
+                move = board.input_user_move()
             else:
                 # m = b.find_random_move()
-                c = b.find_best_move(depth,False,time_limit=time_limit)
-                m = None if c == None else c.last_move
-        if m == None:
-            #print(i,b.display_chars[b.player],'pass')
-            b.make_move(None)
-        else:    
-            #print(i,b.display_chars[b.player],move2str(m.move))
-            b.make_move(m)
-        print(f'Turn {b.turn}: {b.display_chars[b.player]} plays {move2str(m)}')
+                (child,score) = board.find_best_child(depth+1,False,timer_limit=time_limit)
+                move = PASS if child == None else child.move
+        board.make_move(move)
+        print(f'Turn {board.turn}: {board.display_chars[-board.player]} plays {move2str(move)} (value {board.evaluate()}, score {score})')
         if black_user_player or white_user_player: 
-            print(b)       
+            print(board)       
 
-
-    print(b)
-    (b,w,e) = b.count()
+    print(board)
+    (b,w,e) = board.count()
     print(f'{"Black wins" if b > w else "White wins" if w > b else "Draw"} (black:{b}, white:{w}, empty:{e})')
+    return board
 
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    b = play_othello()
 
     

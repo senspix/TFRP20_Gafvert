@@ -4,6 +4,7 @@ import search_minimax as sm
 
 class SimpleTreeNode(sm.Node):
     def __init__(self, nodes, visited_nodes = []):
+        super().__init__()
         self.nodes= nodes
         self.visited_nodes = visited_nodes
 
@@ -57,7 +58,7 @@ class TestMinimax(unittest.TestCase):
         result = node.minimax(1, float('-inf'), float('inf'), True)
         self.assertEqual(result, 3)
 
-    def test_find_best_move(self):
+    def test_find_best_child(self):
         # Test finding best move from initial state
         game_state = {'value': 0, 'children': [
             {'value': 3, 'children': []},
@@ -67,8 +68,10 @@ class TestMinimax(unittest.TestCase):
         
         node = SimpleTreeNode(game_state)
 
-        best_move = node.find_best_move(2)
-        self.assertEqual(best_move.nodes['value'], 5)
+        (child, score) = node.find_best_child(2)
+        self.assertEqual(child.nodes['value'], 5)
+        self.assertEqual(score, 5)
+        
 
     def test_alpha_beta_pruning(self):
         # Test that alpha-beta pruning works correctly
