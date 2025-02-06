@@ -102,7 +102,7 @@ class Board(sm.Node):
         #   (winner gets points for empty squares)
         # returns a heuristic evaluation of the board for the current state, e.g. (weighted sum of):
         #   coin parity: difference in number of pieces for black and white
-        #   mobility: difference in number of valid moves for black and white
+        #   mobility: number of valid moves for black or white
         #   difference in number of corners for black and white
         #   difference in number of pieces in the center for black and white
         #   difference in number of pieces on the edges for black and white
@@ -113,7 +113,13 @@ class Board(sm.Node):
         mobility = -len(self.valid_moves())*self.player
         utility = b + e if b > w else (-w - e if w > b else 0)
         parity = b - w
-        return utility if self.is_terminal() else static_b - static_w + mobility
+        if self.turn < 20: # opening game
+            heuristics = static_b - static_w
+        elif self.turn < 50: # mid game
+            heuristics = static_b - static_w + mobility
+        else: # end game
+            heuristics = parity
+        return utility if self.is_terminal() else heuristics
 
        
 
@@ -300,7 +306,6 @@ def move2str(move):
         return list(map(move2str, move))
 
 
-
 def str2move(move):
     # converts algebraic notation to a move (i,j)
     if move == '':
@@ -311,6 +316,8 @@ def str2move(move):
         return list(map(str2move, move))
     
 def play_othello():
+    # play a game on console 
+    # computer vs human or computer vs computer
     while True: 
         inp = input("Do you want to play black ('b') or white ('w') or none ('n')? ")
         if inp in ['b','w','n']:
