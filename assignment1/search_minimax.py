@@ -60,7 +60,6 @@ class Node:
                 best_score = max(score, best_score)
                 alpha = max(alpha, best_score)
                 if best_score >= beta:
-                    print("beta cut-off")
                     break  # Beta cut-off
             return best_score 
         
@@ -71,7 +70,6 @@ class Node:
                 best_score = min(score, best_score)
                 beta = min(beta, best_score)
                 if best_score <= alpha:
-                    print("alpha cut-off")
                     break  # Alpha cut-off
             return best_score
         

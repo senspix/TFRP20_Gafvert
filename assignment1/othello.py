@@ -317,11 +317,34 @@ def play_othello():
             break
     black_user_player = inp == 'b'
     white_user_player = inp == 'w'
-    print(f'playing a game (black = {"user" if black_user_player else "computer"}, white = {"user" if white_user_player else "computer"})')
-    board = Board(randomize_valid_moves=False)
-    print(board)
+  
     depth = 3 # computer search depth
+    while True:
+        inp = input(f"Enter search depth for computer player (default {depth}): ")
+        if inp == '':
+            break
+        try:
+            depth = int(inp)
+            if depth > 0:
+                break
+        except:
+            pass
+
     time_limit = float('inf') # computer per move time limit in seconds
+    while True:
+        inp = input(f"Enter permove time limit in seconds for computer player (default {time_limit}): ")
+        if inp == '':
+            break
+        try:
+            time_limit = int(inp)
+            if time_limit > 0:
+                break
+        except:
+            pass
+
+    print(f'playing a game (black = {"user" if black_user_player else "computer"}, white = {"user" if white_user_player else "computer"})')
+    board = Board(randomize_valid_moves=True)
+    print(board)
     while not board.is_terminal() and board.turn < 100:
         score = None
         if board.player == BLACK: # black
@@ -329,7 +352,7 @@ def play_othello():
                 move = board.input_user_move()
             else:
                 # m = b.find_random_move()
-                (child,score) = board.find_best_child(depth+1,True,timer_limit = time_limit)
+                (child,score) = board.find_best_child(depth,True,timer_limit = time_limit)
                 move = PASS if child == None else child.move
         else: # white
             if white_user_player:
