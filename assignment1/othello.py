@@ -40,12 +40,13 @@ class Board(sm.Node):
         self.move = None # move of last completed turn
 
         # print characters for display
-        #self.display_chars = {-1:'b', 0: ' ', 1: 'w'}
         # self.display_chars = {-1:'\u26AB', 0: ' ', 1: '\u26AA'} # medium circles too wide
         #self.display_chars = {-1:'\u25CF', 0: ' ', 1: '\u25CB'} # small circles of right width
         #self-highlight_chars = {-1:'\u29BF', 0: '\u2388', 1: '\u29BE'} # looks bad
         self.highlight_chars = highlight_chars
         self.display_chars = display_chars
+        # self.display_chars = {-1:'b', 0: ' ', 1: 'w'}
+        # self.display_chars = {-1:'X', 0: ' ', 1: 'O'}
 
         self.randomize_valid_moves = randomize_valid_moves
 
@@ -57,6 +58,9 @@ class Board(sm.Node):
         tri = tri + np.triu(tri,1).T
         self.weight_matrix = np.vstack([np.hstack([tri,np.fliplr(tri)]),np.flipud(np.hstack([tri,np.fliplr(tri)]))])
 
+        # game phases (opening, mid, end) using in the evaluation function as defined by turns
+        self.opening_phase = 20
+        self.end_phase = 50
 
     def __repr__(self):
         return self.str()
@@ -100,12 +104,15 @@ class Board(sm.Node):
     def evaluate(self):
         # For a terminal state, returns final score of the game from (from Black player perspective):
         #   (winner gets points for empty squares)
-        # returns a heuristic evaluation of the board for the current state, e.g. (weighted sum of):
+        # returns a heuristic evaluation of the board for the current state, as weighted sum of:
         #   coin parity: difference in number of pieces for black and white
         #   mobility: number of valid moves for black or white
-        #   difference in number of corners for black and white
-        #   difference in number of pieces in the center for black and white
-        #   difference in number of pieces on the edges for black and white
+        #   difference in position static weights, capturing e.g. 
+        #       value of corners 
+        #       value of pieces in the center
+        #       value of number of pieces on the edges
+        #   The heuristic evaluation is a weighted sum varying with the game phase (opening, mid, end)
+    
 
         static_b = np.sum((self.board == BLACK) * self.weight_matrix)
         static_w = np.sum((self.board == WHITE) * self.weight_matrix)
@@ -113,15 +120,15 @@ class Board(sm.Node):
         mobility = -len(self.valid_moves())*self.player
         utility = b + e if b > w else (-w - e if w > b else 0)
         parity = b - w
-        if self.turn < 20: # opening game
+        if self.turn < self.opening_phase: # opening game
             heuristics = static_b - static_w
-        elif self.turn < 50: # mid game
+        elif self.turn < self.end_phase: # mid game
             heuristics = static_b - static_w + mobility
         else: # end game
             heuristics = parity
         return utility if self.is_terminal() else heuristics
 
-       
+
 
     def is_terminal(self):
         # returns True if the game is over, False otherwise
@@ -247,7 +254,7 @@ class Board(sm.Node):
                     self.flip_dir((i,j), (di,dj))
 
     def make_move(self, move, check = True):
-        # updates the board with the move (if valid)
+        # updates the board with the move (optionally check if valid)
         # returns True if move is valid, False otherwise
         # move is a tuple (i,j) with i=row, j=column
         # move == None means pass
@@ -287,12 +294,12 @@ class Board(sm.Node):
         valid_moves = move2str(self.valid_moves())
         if len(valid_moves) > 0:
             while True:
-                inp = input(f'Enter {"black" if board.player == BLACK else "white"} move for turn {self.turn} {valid_moves}: ')
+                inp = input(f'Enter {"black" if self.player == BLACK else "white"} move for turn {self.turn} {valid_moves}: ')
                 if inp in valid_moves:
                     break
             return str2move(inp)
         else:
-            print(f'{"Black" if board.player == BLACK else "White"} pass in turn {self.turn}')
+            print(f'{"Black" if self.player == BLACK else "White"} pass in turn {self.turn}')
             return PASS
 
     
