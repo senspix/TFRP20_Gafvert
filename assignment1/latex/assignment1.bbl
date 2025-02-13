@@ -1,0 +1,123 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global/global}
+    \entry{anaconda}{misc}{}{}
+      \list{publisher}{1}{%
+        {Anaconda Inc.}%
+      }
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Anaconda Documentation}
+      \field{title}{Anaconda Software Distribution}
+      \field{version}{Ver. 2.6.4}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://docs.anaconda.com/
+      \endverb
+      \verb{url}
+      \verb https://docs.anaconda.com/
+      \endverb
+    \endentry
+    \entry{tfrp20assignment1}{online}{}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{Assignment 1: Adversarial search}
+      \verb{urlraw}
+      \verb https://canvas.education.lu.se/courses/33984/assignments/225768
+      \endverb
+      \verb{url}
+      \verb https://canvas.education.lu.se/courses/33984/assignments/225768
+      \endverb
+      \warn{\item online entry 'tfrp20assignment1' (assignment1.bib): Invalid format '24 Jan at 13:00 - 15 Sep at 23:59' of date field 'date' - ignoring}
+      \warn{\item online entry 'tfrp20assignment1' (assignment1.bib): Invalid format '2024--01--31' of date field 'urldate' - ignoring}
+    \endentry
+    \entry{aima}{book}{}{}
+      \name{author}{2}{}{%
+        {{hash=18ee0a7bfc995f40254c9d425c977a49}{%
+           family={Russell},
+           familyi={R\bibinitperiod},
+           given={Stuart\bibnamedelima J.},
+           giveni={S\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=5de798d5fa3c0236c0478134cd23f52a}{%
+           family={Norvig},
+           familyi={N\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Pearson}%
+      }
+      \strng{namehash}{a4f50258a14156905c8d2b1b4704be30}
+      \strng{fullhash}{a4f50258a14156905c8d2b1b4704be30}
+      \strng{fullhashraw}{a4f50258a14156905c8d2b1b4704be30}
+      \strng{bibnamehash}{a4f50258a14156905c8d2b1b4704be30}
+      \strng{authorbibnamehash}{a4f50258a14156905c8d2b1b4704be30}
+      \strng{authornamehash}{a4f50258a14156905c8d2b1b4704be30}
+      \strng{authorfullhash}{a4f50258a14156905c8d2b1b4704be30}
+      \strng{authorfullhashraw}{a4f50258a14156905c8d2b1b4704be30}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{4 global}
+      \field{title}{Artificial Intelligence: a modern approach}
+      \field{year}{2021}
+    \endentry
+    \entry{heuristics}{online}{}{}
+      \name{author}{2}{}{%
+        {{hash=771d9c771cd7e2386820335107565ca4}{%
+           family={Sannidhanam},
+           familyi={S\bibinitperiod},
+           given={Vaishnavi},
+           giveni={V\bibinitperiod}}}%
+        {{hash=62be37f68a3cac1b50e108786a0c5ace}{%
+           family={Annamalai},
+           familyi={A\bibinitperiod},
+           given={Muthukaruppan},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{4a472dd8bd813be78af66d3270d08f8b}
+      \strng{fullhash}{4a472dd8bd813be78af66d3270d08f8b}
+      \strng{fullhashraw}{4a472dd8bd813be78af66d3270d08f8b}
+      \strng{bibnamehash}{4a472dd8bd813be78af66d3270d08f8b}
+      \strng{authorbibnamehash}{4a472dd8bd813be78af66d3270d08f8b}
+      \strng{authornamehash}{4a472dd8bd813be78af66d3270d08f8b}
+      \strng{authorfullhash}{4a472dd8bd813be78af66d3270d08f8b}
+      \strng{authorfullhashraw}{4a472dd8bd813be78af66d3270d08f8b}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{An Analysis of Heuristics in Othello}
+      \verb{urlraw}
+      \verb https://courses.cs.washington.edu/courses/cse573/04au/Project/mini1/RUSSIA/miniproject1_vaishu_muthu/Paper/Final_Paper.pdf
+      \endverb
+      \verb{url}
+      \verb https://courses.cs.washington.edu/courses/cse573/04au/Project/mini1/RUSSIA/miniproject1_vaishu_muthu/Paper/Final_Paper.pdf
+      \endverb
+      \warn{\item online entry 'heuristics' (assignment1.bib): Invalid format '2024--01--31' of date field 'urldate' - ignoring}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
