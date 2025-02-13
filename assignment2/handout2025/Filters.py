@@ -13,17 +13,18 @@ class HMMFilter:
         self.__tm = tm
         self.__om = om
         self.__sm = sm
-        self.__f = probs # where is this set?
+        self.__f = probs # appears to be uniform (where is this set?)
+        # print(probs)
         
         
     def filter(self, sensorR) :
-        #print( self.__f)
-        # (forward 14.12)
-        # O = self.__om.get_o_reading(sensorR)
-        # T = self.__tm. get_T_transpose()
-        # self.__f = 
-        # (backward 14.13)
-        #...
+        # (AIMA: forward 14.12)
+        O = self.__om.get_o_reading(sensorR)
+        T = self.__tm.get_T()
+        self.__f = O@T.T@self.__f
+        alpha = 1/np.sum(self.__f)
+        self.__f = self.__f*alpha
+        # print(np.sum(self.__f))
         return self.__f
 
         
