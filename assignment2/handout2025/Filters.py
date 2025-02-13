@@ -19,8 +19,8 @@ class HMMFilter:
     def filter(self, sensorR) :
         #print( self.__f)
         # (forward 14.12)
-        O = self.__om.get_o_reading(sensorR)
-        T = self.__tm. get_T_transpose()
+        # O = self.__om.get_o_reading(sensorR)
+        # T = self.__tm. get_T_transpose()
         # self.__f = 
         # (backward 14.13)
         #...
