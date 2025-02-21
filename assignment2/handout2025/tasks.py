@@ -22,12 +22,14 @@ def estimate_position(f, sm):
     # f is the estimate of the state probabilities
     f_position = f.copy()
     for state in range(0, sm.get_num_of_states(), 4):
-        f_position[state:state+4] = sum(f_position[state:state+4])
+        f_position[state:state+4] = sum(f_position[state:state+4]) # sum the probabilities of the states in the same position
     return sm.state_to_position(np.argmax(f_position))
 
 if __name__ == '__main__':
     # Task 3) Implementation
     grid = (8,8)
+    # grid = (4,4)
+    # grid = (16,20)
     steps = 100 # number of steps to simulate
 
     # Create the state, transition and observation (sensor) models for the grid
@@ -45,51 +47,60 @@ if __name__ == '__main__':
     state0 = random.randint(0,sm.get_num_of_states()-1) # random initial pose
     robot = RobotSim(state0,sm)
 
-    D_NUF = np.zeros(steps,dtype='i')
-    D_UF = np.zeros(steps,dtype='i')
+    D_NUF = np.zeros(steps,dtype='f')
+    D_UF = np.zeros(steps,dtype='f')
 
-
-    # print(f'{i} Robot: state {state} pose {row,col} {HEADINGS[heading]} Sensor: reading {reading} position {row_read,col_read} Filter: estimate {row_est, col_est} manhattan distance {d}')
-    # print(f'{"i":3} {"state":5} {"row,col"} {"dir"} {"read"} {"rowr,colr"} {"dr":>4} {"rowe,cole"} {"de":>3}')
-    print(f'{"i":>4} {"state":4} {"row,col":4} {"head":4} NUF: {"read":4} {"row,col":4} {"d":>4} {"read":4}  UF: {"row,col":4} {"d":>4}')
+    loops = 500
     fail_NUF, fail_UF = 0, 0
-    for i in range(steps):
-        # simulate robot movement
-        state = robot.move_once(tm)
-        (row,col,heading) = sm.state_to_pose(state)
+    for j in range(loops):
 
-        # sensor reading
-        reading_NUF = robot.sense_in_current_state(om_NUF)
-        if reading_NUF is None:
-            fail_NUF += 1
-        reading_UF = robot.sense_in_current_state(om_UF)
-        if reading_UF is None:
-            fail_UF += 1
+        # print(f'{"i":>4} {"state":4} {"row,col":4} {"head":4} NUF: {"read":4} {"row,col":4} {"d":>4} {"read":4}  UF: {"row,col":4} {"d":>4}')
+        for i in range(steps):
+            # simulate robot movement
+            state = robot.move_once(tm)
+            (row,col,heading) = sm.state_to_pose(state)
 
-        # Commented out below: reading_to_position does not handle None gracefully
-        # (row_NUF,col_NUF) = sm.reading_to_position(reading_NUF)
-        # (row_UF,col_UF) = sm.reading_to_position(reading_UF)
+            # sensor reading
+            reading_NUF = robot.sense_in_current_state(om_NUF)
+            if reading_NUF is None:
+                fail_NUF += 1
+            reading_UF = robot.sense_in_current_state(om_UF)
+            if reading_UF is None:
+                fail_UF += 1
 
-        # d_NUF= manhattan_distance((row,col),(row_NUF,col_NUF))
-        # d_UF = manhattan_distance((row,col),(row_UF,col_UF))
+            # Commented out below: reading_to_position does not handle None gracefully
+            # (row_NUF,col_NUF) = sm.reading_to_position(reading_NUF)
+            # (row_UF,col_UF) = sm.reading_to_position(reading_UF)
 
-        # filter update
-        est_NUF = filter_NUF.filter(reading_NUF)
-        (row_est_NUF,col_est_NUF) = estimate_position(est_NUF, sm)
-        d_est_NUF = manhattan_distance((row,col),(row_est_NUF,col_est_NUF))
+            # d_NUF= manhattan_distance((row,col),(row_NUF,col_NUF))
+            # d_UF = manhattan_distance((row,col),(row_UF,col_UF))
 
-        est_UF = filter_UF.filter(reading_UF)
-        (row_est_UF,col_est_UF) = estimate_position(est_UF, sm)
-        d_est_UF = manhattan_distance((row,col),(row_est_UF,col_est_UF))
- 
-        D_NUF[i] = d_est_NUF
-        D_UF[i] = d_est_UF
+            # filter update
+            est_NUF = filter_NUF.filter(reading_NUF)
+            (row_est_NUF,col_est_NUF) = estimate_position(est_NUF, sm)
+            d_est_NUF = manhattan_distance((row,col),(row_est_NUF,col_est_NUF))
 
-        # print(f'{i:3} {state:5} {row:3},{col:<3} {HEADINGS[heading]:3} {str(reading):>4} {str(row_read):>4},{str(col_read):<4} {str(dr):4} {row_est:4},{col_est:<4} {de:3}')
-        print(f'{i:4} {state:4} {row:4},{col:<4} {HEADINGS[heading]:4}     {str(reading_NUF):<4} {row_est_NUF:4},{col_est_NUF:<4} {d_est_NUF:4}     {str(reading_UF):<4} {row_est_UF:4},{col_est_UF:<4} {d_est_UF:4}')
+            est_UF = filter_UF.filter(reading_UF)
+            (row_est_UF,col_est_UF) = estimate_position(est_UF, sm)
+            d_est_UF = manhattan_distance((row,col),(row_est_UF,col_est_UF))
+    
+            D_NUF[i] += d_est_NUF
+            D_UF[i] += d_est_UF
+
+            # print(f'{i:4} {state:4} {row:4},{col:<4} {HEADINGS[heading]:4}     {str(reading_NUF):<4} {row_est_NUF:4},{col_est_NUF:<4} {d_est_NUF:4}     {str(reading_UF):<4} {row_est_UF:4},{col_est_UF:<4} {d_est_UF:4}')
+        print(f'Run {j+1}/{loops} completed', end='\r')
+    print()
+    fail_NUF /= loops
+    fail_UF /= loops
+    D_NUF /= loops
+    D_UF /= loops
+
     print(f'NUF fail frequency {fail_NUF/steps:.2%}, UF fail frequency {fail_UF/steps:.2%}')
 
-    plt.plot(D_NUF, label='NUF')
-    plt.plot(D_UF, label='UF')
+    plt.plot(D_NUF, label='NUF model', marker='o')
+    plt.plot(D_UF, label='UF model', marker='x')
+    plt.xlabel('Step')
+    plt.ylabel('Average Manhattan Distance')
+    plt.title(f'Forward HMM filter robot localization \nperformance on {grid} grid over {loops} runs')
     plt.legend()
     plt.show()
