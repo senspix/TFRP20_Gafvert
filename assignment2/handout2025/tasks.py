@@ -27,9 +27,9 @@ def estimate_position(f, sm):
 
 if __name__ == '__main__':
     # Task 3) Implementation
-    grid = (8,8)
+    # grid = (8,8)
     # grid = (4,4)
-    # grid = (16,20)
+    grid = (16,20)
     steps = 100 # number of steps to simulate
 
     # Create the state, transition and observation (sensor) models for the grid
@@ -47,6 +47,7 @@ if __name__ == '__main__':
     state0 = random.randint(0,sm.get_num_of_states()-1) # random initial pose
     robot = RobotSim(state0,sm)
 
+    # vector to store results for averaging over loops
     D_OBS_NUF = np.zeros(steps,dtype='f')
     D_OBS_UF = np.zeros(steps,dtype='f')
     D_EST_NUF = np.zeros(steps,dtype='f')
@@ -54,8 +55,8 @@ if __name__ == '__main__':
     LOOPS_NUF = np.zeros(steps,dtype='i')
     LOOPS_UF = np.zeros(steps,dtype='i')
 
-    loops = 500
-    fail_NUF, fail_UF = 0, 0
+    loops = 500 # number of runs to average over
+    fail_NUF, fail_UF = 0, 0 # count the number of times the sensor reading fails
     for j in range(loops):
 
         # print(f'{"i":>4} {"state":4} {"row,col":4} {"head":4} NUF: {"read":4} {"row,col":4} {"d":>4} {"read":4}  UF: {"row,col":4} {"d":>4}')
@@ -76,14 +77,14 @@ if __name__ == '__main__':
                 (row_NUF,col_NUF) = sm.reading_to_position(reading_NUF)
                 d_obs_NUF= manhattan_distance((row,col),(row_NUF,col_NUF))
                 LOOPS_NUF[i] += 1
-            else:
+            else: # skip if no observation
                 d_obs_NUF = 0
 
             if not reading_UF is None:
                 (row_UF,col_UF) = sm.reading_to_position(reading_UF)
                 d_obs_UF = manhattan_distance((row,col),(row_UF,col_UF))
                 LOOPS_UF[i] += 1
-            else:
+            else: # skip if no observation
                 d_obs_UF = 0
 
 
@@ -104,6 +105,8 @@ if __name__ == '__main__':
             # print(f'{i:4} {state:4} {row:4},{col:<4} {HEADINGS[heading]:4}     {str(reading_NUF):<4} {row_est_NUF:4},{col_est_NUF:<4} {d_est_NUF:4}     {str(reading_UF):<4} {row_est_UF:4},{col_est_UF:<4} {d_est_UF:4}')
         print(f'Run {j+1}/{loops} completed', end='\r')
     print()
+
+    # compute averages
     fail_NUF /= loops
     fail_UF /= loops
     D_EST_NUF /= loops
@@ -113,6 +116,7 @@ if __name__ == '__main__':
 
     print(f'NUF fail frequency {fail_NUF/steps:.2%}, UF fail frequency {fail_UF/steps:.2%}')
 
+    # plot results
     plt.figure()
     plt.plot(D_OBS_NUF, label=f'NUF observations (fail {fail_NUF/steps:.1%})', marker='*')
     plt.plot(D_OBS_UF, label=f'UF observations (fail {fail_UF/steps:.1%})', marker='v')
