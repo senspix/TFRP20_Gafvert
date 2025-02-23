@@ -71,12 +71,6 @@ if __name__ == '__main__':
             state = robot.move_once(tm)
             (row,col,heading) = sm.state_to_pose(state)
 
-            row_k = np.roll(row_k,1) # shift the array to store the previous robot position
-            col_k = np.roll(col_k,1) # shift the array to store the previous robot position
-            row_k[0] = row
-            col_k[0] = col
-
-
             # sensor readings
             reading_NUF = robot.sense_in_current_state(om_NUF)
             if reading_NUF is None:
@@ -110,8 +104,6 @@ if __name__ == '__main__':
             d_est_UF = manhattan_distance((row,col),(row_est_UF,col_est_UF))
 
             # smoother update
-            f_seq_NUF = np.roll(f_seq_NUF,1,axis=0) # shift the array to store the previous filter results
-            f_seq_NUF[0] = est_NUF
             sensor_r_seq_NUF = np.roll(sensor_r_seq_NUF,1) # shift the array to store the previous sensor readings
             sensor_r_seq_NUF[0] = reading_NUF if not reading_NUF is None else om_NUF.get_nr_of_readings()-1
             if i >= k:
@@ -119,6 +111,8 @@ if __name__ == '__main__':
                 (row_smooth_NUF,col_smooth_NUF) = estimate_position(est_smooth_NUF, sm)
                 d_smooth_NUF = manhattan_distance((row_k[-1],col_k[-1]),(row_smooth_NUF,col_smooth_NUF))
                 D_SMOOTH_NUF[i-k] += d_smooth_NUF
+            f_seq_NUF = np.roll(f_seq_NUF,1,axis=0) # shift the array to store the previous filter results
+            f_seq_NUF[0] = est_NUF
     
             # store results
             D_OBS_NUF[i] += d_obs_NUF
@@ -126,6 +120,10 @@ if __name__ == '__main__':
             D_EST_NUF[i] += d_est_NUF
             D_EST_UF[i] += d_est_UF
 
+            row_k = np.roll(row_k,1) # shift the array to store the previous robot position
+            col_k = np.roll(col_k,1) # shift the array to store the previous robot position
+            row_k[0] = row
+            col_k[0] = col
 
             # print(f'{i:4} {state:4} {row:4},{col:<4} {HEADINGS[heading]:4}     {str(reading_NUF):<4} {row_est_NUF:4},{col_est_NUF:<4} {d_est_NUF:4}     {str(reading_UF):<4} {row_est_UF:4},{col_est_UF:<4} {d_est_UF:4}')
         print(f'Run {j+1}/{loops} completed', end='\r')
