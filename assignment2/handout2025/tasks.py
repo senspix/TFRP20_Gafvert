@@ -33,7 +33,7 @@ if __name__ == '__main__':
     grid = (10,10) # 4.4
     steps = 100 # number of steps to simulate
     k = 5 # smoother fixed lag
-    loops = 10 # number of runs to average over
+    loops = 500 # number of runs to average over
 
     # Create the state, transition and observation (sensor) models for the grid
     sm = StateModel(*grid)
