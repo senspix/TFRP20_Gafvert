@@ -27,13 +27,17 @@ def estimate_position(f, sm):
 
 if __name__ == '__main__':
     # Task 3) Implementation and 4) Evaluation (uncomment the respective grid size below)
-    # grid = (8,8) # 4.1
+    # Configure the plots by commenting out the respective plot at the end of this section
+    ############################### CONFIGURE RUN HERE ###################################
+    grid = (8,8) # 4.1
     # grid = (4,4) # 4.2
     # grid = (16,20) # 4.3
-    grid = (10,10) # 4.4
+    # grid = (10,10) # 4.4
     steps = 100 # number of steps to simulate
     k = 5 # smoother fixed lag
     loops = 500 # number of runs to average over
+    ######################################################################################
+
 
     # Create the state, transition and observation (sensor) models for the grid
     sm = StateModel(*grid)
@@ -140,15 +144,17 @@ if __name__ == '__main__':
 
     print(f'NUF fail frequency {fail_NUF/steps:.2%}, UF fail frequency {fail_UF/steps:.2%}')
 
-    # plot results
-    plt.figure()
+    # plot results (configure by commenting out the respective plot)
+    ############################## CONFIGURE PLOTS  HERE ##################################
     plt.plot(D_OBS_NUF, label=f'NUF observations (fail {fail_NUF/steps:.1%})', marker='*')
     plt.plot(D_OBS_UF, label=f'UF observations (fail {fail_UF/steps:.1%})', marker='o')
     plt.plot(D_EST_NUF, label='NUF filter', marker='+')
     plt.plot(D_EST_UF, label='UF filter', marker='x')
     plt.plot(D_SMOOTH_NUF, label='NUF smoother', marker='v')
+    ######################################################################################
     plt.xlabel('Step')
     plt.ylabel('Average Manhattan Distance')
     plt.title(f'Forward HMM filter robot localization \nperformance on {grid} grid over {loops} runs')
     plt.legend()
     plt.show()
+
