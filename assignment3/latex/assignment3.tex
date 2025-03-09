@@ -46,244 +46,125 @@ Magnus Gäfvert\\\texttt{magnus.gafvert@gmail.com}}
 \begin{document}
 \maketitle
 \begin{abstract}
-    This report present and discuss the author's solution to the assignment on classification with the perceptron and logistic regression. The solution is implemented in the given template Jupyter notebook and provided alongside this report.
+    This report present and discuss the authors' solution to the assignment on classification with the perceptron and logistic regression. The solution is implemented in the given template Jupyter notebook and provided alongside this report.
 \end{abstract}
 
 \section{Introduction}
-The assignment is to implement an Othello game playing agent based on (at least) the classical min-max search with $\alpha$,$\beta$ pruning~\cite{aima}, with certain program requirents to pass~\cite{tfrp20assignment1}. The provided solution does not implement the optional competition API. 
+The objectives of this assignment~\cite{tfrp20assignment3} are to:
+
+\begin{enumerate}
+    \item  Write a linear regression program using gradient descent;
+    \item  Write linear classifiers using the perceptron algorithm and logistic regression;
+    \item  Experiment variations of the algorithms;
+    \item  Evaluate classifiers;
+    \item  Experiment with popular tools;
+    \item  Read a scientific article on optimization techniques and comment it;
+    \item  Present code, results, and comments in a short dissertation. 
+\end{enumerate}
+
+The respective tasks are presented in the following sections.
 
 \section{Method}
-The implementation toolchain is based on Python 3.9.21 and the Anaconda distribution~\cite{anaconda} using Microsoft Visual Studio Code with free GitHub Copilot served by the preview Anthropic Claude 3.5 Sonnet LLM and Microsoft Python plugins. This report is typeset with \LaTeX using TexLive and and the LaTeX Workshop plugin by James Yu.
+The implementation toolchain is based on Jupyter Notebook with Python 3.9.21 and the Anaconda distribution~\cite{anaconda} using Microsoft Visual Studio Code with free GitHub Copilot served by the preview Anthropic Claude 3.5 Sonnet LLM and Microsoft Python plugins. This report is typeset with \LaTeX using TexLive and and the LaTeX Workshop plugin by James Yu.
 
-The program is structured in a generic module \texttt{search\_minimax} wich implements classical min-max search with termination on timer expiration as an abstract base class. The Othello game mechanics with console computer and user player support is implemented in the module \texttt{othello} which uses the \texttt{search\_minimax} module. A game can be started by calling python with the \texttt{othello} module as a script from the command line.
-
-The modules are tested with the Python \texttt{unittest} module with test suites provided in the modules \texttt{test\_search\_minimax} and \texttt{test\_othello}, respectively.
-
-The complete solution is provided in the files:
+The code is structured in a Jupyter notebook 
 \begin{verbatim}
-    search_minimax.py
-    test_search_minimax.py
-    othello.py
-    test_othello.py
+    ai_lab_perceptron_students.ipynb    
 \end{verbatim}
-
-
-\subsection{The \texttt{search\_minimax} module}
-The \texttt{search\_minimax} module includes an abstract base class \texttt{Node} to be used for adding minmax search capability to any appropriate two-player zero-sum game. The inheriting class must implement the abstract methods:
-\begin{lstlisting}[language=Python]
-def is_terminal(self):
-    """
-    Check if the current node is a terminal state.
-    Implement game-specific logic here.
-    """
-
-def evaluate(self):
-    """
-    Evaluate the current game state from the perspective of the max player.
-    Must return Utility game score at terminal state.
-    For all non terminal states s, return a heuristic evaluation Eval(s) of the board such that 
-    Utility(loss) <= Eval(s) <= Utility(win) for all non terminal states s.
-    Implement game-specific evaluation function here.
-    """
-
-def get_children(self):
-    """
-    Generate all possible moves from current state.
-    Implement game-specific move generation here.
-    """
-\end{lstlisting}
-
-The \texttt{Node} class provides implementation of classical min-max search with $\alpha$, $\beta$ pruning and timer interruption in the \verb|minimax| method. A search is initiated by calling the convenience method \verb|find_best_child| with arguments to limit search depth and optionally to indicate if player is maximizing (default) or minimizing and to limit search time. The search will return a tuple of best child the best evaluation score.
-\begin{lstlisting}[language=Python]
-    def minimax(self, depth, alpha, beta, maximizing_player, timer_start = 0, timer_limit = float('inf')):
-        """
-        Minimax algorithm with alpha-beta pruning and optional timer interruption.
-        
-        Args:
-            depth: Maximum depth to search
-            alpha: Alpha value for pruning
-            beta: Beta value for pruning
-            maximizing_player: Boolean indicating if current player is maximizing
-            timer_start, timer_limit: search interrupted when current time exceeds timer_start + timer_limit
-        
-        Returns:
-            best_score: The best possible score from the current position
-        """
-
-    def find_best_child(self, depth, maximizing_player=True, timer_limit = float('inf')):
-        """
-        Convenience method to initiate search from current game state using
-        Minimax algorithm with alpha-beta pruning and optional timer interruption.
-        
-        Args:
-            depth: Maximum depth to search (must be > 0)
-            alpha: Alpha value for pruning
-            beta: Beta value for pruning
-            maximizing_player: Boolean indicating if current player is maximizing
-            timer_limit: search interrupted when time lapsed from calling this method exceeds timer_limit
-        
-        Returns:
-            best_child: The best possible child found from the current node
-                None if no children exists from current game state 
-            best_score: The best possible score found from the current node
-                -inf for maximizing player or +inf for minimizing player if no children exists from current game state  
-        """
-        
-\end{lstlisting} 
-
-The test suite includes a small but non-trivial example from the internet\footnote{URL in the code comments} which verifies that nodes are pruned correctly.
-
-\subsection{The \texttt{othello} module}
-
-The \texttt{othello} module implements the Othello game mechanics and user interaction. The module uses the \texttt{search\_minimax} module to provide a computer player. The module provides a console user interface to start a game and play against the computer using algebraic notation and a unicode string representation of the board state. The module provides a convenience method \texttt{play\_othello} to start a game with a computer player, and which is automatically invoked when the module is called from the command line. 
-
-The module provides the \texttt{Board} class which represent the board state in a \texttt{numpy} array (for convenience and efficiency in game logic functions vs using lists). Black and White player positions are encoded with -1 and 1, respectively, and vacant positions are 0.
-
-\subsubsection{Game logic functions}
-The \texttt{othello} module provides a number methods and convenience functions to support the Othello game mechanics. The methods\footnote{One might consider using class or static methods for some of these} of the \texttt{Board} class and include: \texttt{valid\_move}, \texttt{valid\_move\_dir}, \texttt{valid\_moves}\footnote{The \texttt{valid\_moves} method randomly shuffles the list of moves to avoid predictive game play in certain situations}, \texttt{flip\_dir}, \texttt{flip} which are explained by their respective names and docstrings. The method \texttt{make\_move} updates the board state with a given move and hands the turn to the other player.
-\begin{lstlisting}[language=Python]
-    def make_move(self, move, check = True):
-        # updates the board with the move (if valid)
-        # returns True if move is valid, False otherwise
-        # move is a tuple (i,j) with i=row, j=column
-        # move == None means pass
-\end{lstlisting}
-
-
-The \texttt{Board} class inherits from the \texttt{search\_minimax.Node} class and implements the abstract methods \texttt{is\_terminal}, \texttt{evaluate} and \texttt{get\_children} to provide Othello game specific logic for the min-max search algorithm. 
-
-The \texttt{is\_terminal} method will return \texttt{True} if the game is over, and \texttt{False} otherwise. 
-
-\begin{lstlisting}[language=Python]
-    def is_terminal(self):
-        # returns True if the game is over, False otherwise
-        # the game is over if at least one of the following conditions holds true:
-        #   no player has a valid move
-        #   the board is full
-        #   the board has pieces of only one color
-\end{lstlisting}
-
-The \texttt{get\_children} method is implemented as a generator function\footnote{Even if the method  likely is used in a \texttt{for} loop this will not have any practical improvement on memory footprint of the algorithm, since it is depth first.} and will identify all valid moves from the current position and then for each yield a new board state with the move applied. The method will yield a pass move (equal to current state) if no valid moves are available. The new board states are created by applying the move to a deep copy of current state\footnote{An alternative to deep copy would be to implement a roll-back of moves as the depth first algorithm propagates back.}.
-
-\begin{lstlisting}[language=Python]
-    def get_children(self):
-        # returns a list of all possible children of the current node
-        # children are all possible moves for the current player
-        # return pass move if no valid
-\end{lstlisting}
-
-The \texttt{evaluate} method is critical for the min-max search algorithm. There are many possible options to design the function, and the choice of evaluation function will have a significant impact on the performance of the computer player. In this implementation, the evaluation function is a a combination of coin parity, mobility and position static weights\footnote{In this case picked from the arbitrary source \cite{heuristics}}, adjusted based on the game phase (opening, mid, end). From the author's amateur intuition the proposed evaluation function will prioritize positions such as corners and edges in the opening phase, adding mobility in the mid game, and focus on coin parity in the end game. 
-
-\begin{lstlisting}[language=Python]
-    def evaluate(self):
-        # For a terminal state, returns final score of the game from (from Black player perspective):
-        #   (winner gets points for empty squares)
-        # returns a heuristic evaluation of the board for the current state, as weighted sum of:
-        #   coin parity: difference in number of pieces for black and white
-        #   mobility: number of valid moves for black or white
-        #   difference in position static weights, capturing e.g. 
-        #       value of corners 
-        #       value of pieces in the center
-        #       value of number of pieces on the edges
-        #   The heuristic evaluation is a weighted sum varying with the game phase (opening, mid, end)
- \end{lstlisting}
-
- For testing purposes, there is also a \texttt{find\_random\_move} method implemented which will randomly select a valid move from the current state.
+with sections and cells for each of the tasks in the assignment. The code is evaluated with the provided evaluation data from the historial novel Salammbô by Gustave Flaubert~\cite{flaubert1862salammbô} to verify performance of the implementation.
 
  
 \section{Results and discussion}
 
-\subsection{Playing a game}
-The \texttt{othello} module will initiate a console user interaction to start a game when called from the command line. User is prompted to select color for the human player (if any) as well as search depth and time limit for the computer player(s)\footnote{In the current implementation both computer players will use the same setting, although extending to different settings is trivial}. The game is played by entering moves in algebraic notation (valid moves are shown). The played move is printed in the console together with the evaluation score of the current move and the score (if any) returned by the search algorithm. Game state is printed on the console after each move if there is a human player.\footnote{The default pretty unicode characters representing black and white coins are not supported by \LaTeX so 'X' and 'O' are used instead in the report.}
 
-\begin{verbatim}
-    > python othello.py
-    Do you want to play black ('b') or white ('w') or none ('n')? b
-    Enter search depth for computer player (default 3): 4
-    Enter permove time limit in seconds for computer player (default inf): 
-    playing a game (black = user, white = computer)
-      a b c d e f g h
-    1                 1
-    2                 2
-    3                 3
-    4       O X       4
-    5       X O       5
-    6                 6
-    7                 7
-    8                 8
-      a b c d e f g h
-    
-    Enter black move for turn 0 ['c4', 'e6', 'f5', 'd3']: f5
-    Turn 1: X plays f5 (value 2.0, score None)
-      a b c d e f g h
-    1                 1
-    2                 2
-    3                 3
-    4       O X       4
-    5       X X X     5
-    6                 6
-    7                 7
-    8                 8
-      a b c d e f g h
-    
-    Turn 2: O plays f4 (value 0.0, score 2.0)
-      a b c d e f g h
-    1                 1
-    2                 2
-    3                 3
-    4       O O O     4
-    5       X X X     5
-    6                 6
-    7                 7
-    8                 8
-      a b c d e f g h
-    
-    Enter black move for turn 2 ['g3', 'c3', 'f3', 'd3', 'e3']:
-\end{verbatim}
+\subsection{Linear regression program using gradient descent}
 
-The game will end when no player has a valid move, and the winner is announced. The example below shows the final 6 moves of a computer vs computer game with depth 4.
-\begin{verbatim}
-    Turn 55: X plays h4 (value 21, score 12)
-    Turn 56: O plays h5 (value 14, score 23)
-    Turn 57: X plays h7 (value 23, score 41)
-    Turn 58: O plays g8 (value 20, score 41)
-    Turn 59: X plays g7 (value 23, score 41)
-    Turn 60: O plays h8 (value 41, score 41)
-      a b c d e f g h
-    1 X O X X X X X X 1
-    2 X O O O O X O X 2
-    3 X O X X O O X X 3
-    4 X X O O X X O X 4
-    5 X O X O O X O X 5
-    6 X O X X O O X X 6
-    7 X X O X X X O X 7
-    8 X X X X X X O O 8
-      a b c d e f g h
-    
-    Black wins (black:41, white:23, empty:0)
-\end{verbatim}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Fit English.png}
+    \caption{Screenshot of the Jupyter notebook with the implementation of the perceptron algorithm.}
+    \label{fig:regression_English}
+\end{figure}
 
-\subsection{Observations}
-The computer will beat the author already at search depth 2 or 3\ldots The implementation is mostly tested on computer vs computer games with search depths up 5 without time limit. At search depth 6 there are moves which takes longer than the patience of the author. 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Fit French.png}
+    \caption{Screenshot of the Jupyter notebook with the implementation of the perceptron algorithm.}
+    \label{fig:regression_French}
+\end{figure}
 
-Several variants of the evaluation function was tested but no systematic benchmarking has been performed. 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Regression errors.png}
+    \caption{Screenshot of the Jupyter notebook with the implementation of the perceptron algorithm.}
+    \label{fig:regression_French}
+\end{figure}
 
-Pass moves occur more frequently in the end game and seems less common for higher search depths. With an evaluation functions that ignores mobility the pass moves semmed more frequent.
+\begin{table}[]
+    \caption{Regression results}
+    \label{tab:regression-table}
+    \small
+    \begin{tabular}{lllll}
+        \hline\hline
+             & \multicolumn{2}{c}{French}                    & \multicolumn{2}{c}{English}            \\
+             & Gradient descent & Stochastic descent & Gradient descent & Stochastic descent \\
+             \hline
+    Epoch    & 187              & 31                 & 186              & 15                 \\
+    w{[}0{]} & 0.00170945       & -0.00170833        & -6.71530774e-04  & 0.00111656         \\
+    w{[}1{]} & 0.98640986       & 0.99526806         & 9.94590530e-01   & 1.00362464\\
+    \hline\hline
+    \end{tabular}
+\end{table}
 
-With two computer players with search depths differing by 1, then the player with lower depth will always find the same best move as the player with higher depth in the previous move, which indicates correctness of the algorithm (with no time limit active). 
 
-With time limit it is possible to play larger depths, but only a few branches will be explored (depth first) and not necessarily good ones. With the shuffling of valid moves in the implementation the result becomes unpredictable such that also two computer players with the same settings will play differently, but they still beat the author in all tested cases. 
+\subsection{Linear classifiers using the perceptron algorithm and logistic regression}
 
-The introduced shuffling of the valid moves does not affect the result of the algorithm with a depth limit but may vary the performance since the pruning depends on the ordering of the children. If time limit is introduced, then the shuffling will affect the result, since the single or few explored branches will be random. There was an idea to try sorting the children of a node based on some evaluation, but it was not tested. Again, without time limit the only possible effect would be on performance if the sorting would prioritize branches such that the pruning works more. 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Stochastic descent hard threshold classifier.png}
+    \caption{Screenshot of the Jupyter notebook with the implementation of the perceptron algorithm.}
+    \label{fig:Stochastic_descent_hard_threshold_classifier}
+\end{figure}
 
-One can see that the evaluation score from the algorithm correctly equals the utility (final score) for the $N$ last moves with $N=\texttt{depth}$. 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/Stoschastic descent logistic classifier.png}
+    \caption{Screenshot of the Jupyter notebook with the implementation of the perceptron algorithm.}
+    \label{fig:classifier_result_1}
+\end{figure}
 
-\subsection{Implementation efficiency}
- Litte effort has been spent on optimizing the implementation vs memory or compute resources. Since the algorithm is depth first the memory footprint of the recursion is small even if there is little consideration in data representation vs memory. There are likely a significant unnecessary computational overhead in the game logic functions which could be optimized by caching results etc.    
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/logistic classifier.png}
+    \caption{Screenshot of the Jupyter notebook with the implementation of the perceptron algorithm.}
+    \label{fig:classifier_result_2}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/classifier result 1.png}
+    \caption{Screenshot of the Jupyter notebook with the implementation of the perceptron algorithm.}
+    \label{fig:classifier_result_1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/classifier result 2.png}
+    \caption{Screenshot of the Jupyter notebook with the implementation of the perceptron algorithm.}
+    \label{fig:classifier_result_2}
+\end{figure}
+
+
+\subsection{Experimenting with popular tools: \texttt{Keras}, \texttt{PyTorch}, \texttt{scikit\_learn}}
+
+\subsection{Reading Ruder}
+You will read the article An overview of gradient descent optimization algorithms by Ruder (2017) and you will outline the main characteristics of all the optimization algorithms the author describes. This part should be of about one to two pages. 
+\cite{DBLP:journals/corr/Ruder16}
 
 
 \section{Conclusions and future work}
-This is a lot of fun and a true rabbit hole with many ideas to test out, including of course experimenting with different types of evaluation functions. It would be interesting to apply optimization methods (Nelder-Mead or similar) on selected parameters in the evaluation function (weights etc) and run computer-vs-computer battles to find optimal sets. Another interesting extension would be the addition of Monte-Carlo search and explore mixed strategies. Some refactoring and cleanup of the code would be beneficial, e.g. to better support different player settings, and the implementation of the competition API would be a nice addition.
+
 
 \printbibliography
 \end{document}
